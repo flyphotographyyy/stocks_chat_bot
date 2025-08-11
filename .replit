@@ -1,0 +1,77 @@
+modules = ["python-3.11"]
+
+[nix]
+channel = "stable-25_05"
+packages = ["glibcLocales", "libxcrypt", "pkg-config", "xcodebuild", "xsimd", "zlib"]
+
+[deployment]
+deploymentTarget = "autoscale"
+run = ["streamlit", "run", "app.py", "--server.port", "5000"]
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Install Dependencies"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "install_dependencies"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Stock Signals App"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Enhanced Stock Signals App"
+
+[[workflows.workflow]]
+name = "Install Dependencies"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "uv add numpy pandas yfinance feedparser pytz requests vaderSentiment pandas-market-calendars streamlit-autorefresh"
+
+[workflows.workflow.metadata]
+outputType = "console"
+
+[[workflows.workflow]]
+name = "install_dependencies"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "uv add yfinance feedparser vaderSentiment pandas-market-calendars streamlit-autorefresh pytz requests numpy pandas"
+
+[[workflows.workflow]]
+name = "Stock Signals App"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "streamlit run app.py --server.port 5000"
+waitForPort = 5000
+
+[[workflows.workflow]]
+name = "Enhanced Stock Signals App"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "streamlit run signals_app_pro_enhanced.py --server.port 5000"
+waitForPort = 5000
+
+[[ports]]
+localPort = 5000
+externalPort = 80
+
+[agent]
+integrations = ["web_scraper==1.0.0"]
